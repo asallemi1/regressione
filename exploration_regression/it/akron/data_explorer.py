@@ -86,4 +86,108 @@ class PuliziaDataset:
         return risultati
 
 
+class Regressione:
+    def __init__(self, X, y, metodo="lineare", alpha=1.0, n_components=3):
+        self.__X = X
+        self.__y = y
+        self.__X_train = None
+        self.__X_test = None
+        self.__y_train = None
+        self.__y_test = None
+        self.__X_train_pca = None
+        self.__X_test_pca = None
+        self.__y_pred = None
+        self.__mse = None
+        self.__metodo = metodo.lower()
+        self.__alpha = alpha
+        self.__n_components = n_components
+
+        self.__scaler = StandardScaler()
+        self.__pca = PCA(n_components=self.__n_components)
+        self.__modello = self.__crea_modello()
+
+    def __crea_modello(self):
+        if self.__metodo == "lineare":
+            return LinearRegression()
+
+        elif self.__metodo == "ridge":
+            return Ridge(alpha=self.__alpha)
+
+        elif self.__metodo == "lasso":
+            return Lasso(alpha=self.__alpha)
+
+        elif self.__metodo == "elasticnet":
+            return ElasticNet(alpha=self.__alpha, l1_ratio=0.5)
+
+        else:
+            raise ValueError(
+                "Metodo non valido. Usa: 'lineare', 'ridge', 'lasso' oppure 'elasticnet'"
+            )
+
+    def splitta_dataset(self, test_size=0.2, random_state=42):
+        self.__X_train, self.__X_test, self.__y_train, self.__y_test = train_test_split(
+            self.__X,
+            self.__y,
+            test_size=test_size,
+            random_state=random_state
+        )
+        return self.__X_train, self.__X_test, self.__y_train, self.__y_test
+
+    def applica_scaling_e_pca(self):
+        X_train_scaled = self.__scaler.fit_transform(self.__X_train)
+        X_test_scaled = self.__scaler.transform(self.__X_test)
+
+        self.__X_train_pca = self.__pca.fit_transform(X_train_scaled)
+        self.__X_test_pca = self.__pca.transform(X_test_scaled)
+
+        return self.__X_train_pca, self.__X_test_pca, self.__pca.explained_variance_ratio_
+
+    def addestra_e_valuta(self):
+        self.__modello.fit(self.__X_train_pca, self.__y_train)
+        self.__y_pred = self.__modello.predict(self.__X_test_pca)
+        self.__mse = mean_squared_error(self.__y_test, self.__y_pred)
+        return self.__mse
+
+    def mostra_risultati(self):
+        print("=" * 60)
+        print("REGRESSIONE CON PCA")
+        print("=" * 60)
+        print(f"Metodo scelto: {self.__metodo}")
+        print(f"Alpha: {self.__alpha}")
+        print(f"Numero componenti PCA: {self.__n_components}")
+        print(f"Varianza spiegata: {sum(self.__pca.explained_variance_ratio_)*100:.2f}%")
+        print(f"\nMSE sul test set: {self.__mse:.4f}")
+        print(f"RMSE: {self.__mse**0.5:.4f}")
+
+        print(f"\nPredizioni sul test set:")
+        print(self.__y_pred)
+
+        print(f"\nCoefficients:")
+        coef = self.__modello.coef_
+
+        if np.ndim(coef) == 1:
+            for i, c in enumerate(coef):
+                print(f"  PC{i+1}: {c:.4f}")
+        else:
+            for target_idx, row in enumerate(coef):
+                print(f"  Target {target_idx + 1}:")
+                for i, c in enumerate(row):
+                    print(f"    PC{i+1}: {c:.4f}")
+
+        print("\nIntercept:")
+        intercept = self.__modello.intercept_
+        if np.ndim(intercept) == 0:
+            print(f"  {intercept:.4f}")
+        else:
+            for i, val in enumerate(np.ravel(intercept)):
+                print(f"  Target {i+1}: {val:.4f}")
+
+    def get_predizioni(self):
+        return self.__y_pred
+
+    def get_mse(self):
+        return self.__mse
+
+    def get_modello(self):
+        return self.__modello
 
