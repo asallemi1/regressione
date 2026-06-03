@@ -85,19 +85,5 @@ class PuliziaDataset:
 
         return risultati
 
-pulizia = PuliziaDataset()
 
-print("NA trovati:", pulizia.individua_na())
-pulizia.trova_ed_elimina_na()
 
-print("Outliers:", pulizia.trova_outliers())
-print("Matrice di correlazione:\n", pulizia.matrice_correlazione())
-
-df_pca, varianza = pulizia.applica_pca()
-print("PCA:")
-print(df_pca)
-print("Varianza spiegata:", varianza)
-
-risultati_jb = pulizia.jarque_bera_test()
-for colonna, info in risultati_jb.items():
-    print(colonna, info)
