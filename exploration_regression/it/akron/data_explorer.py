@@ -1,8 +1,13 @@
 from ucimlrepo import fetch_ucirepo
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.metrics import mean_squared_error
 
 
 class PuliziaDataset:
