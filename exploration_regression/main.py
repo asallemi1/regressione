@@ -80,6 +80,12 @@ def correlation():
 
     return jsonify(corr.to_dict())
 
+@app.route('/corr/matrix')
+def corr():
+    df = PuliziaDataset()
+    img = df.grafici_correlazione()
+    return send_file(img, mimetype='image/png')
+
 @app.route('/testJB')
 def testJB():
     df = PuliziaDataset()
