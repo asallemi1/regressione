@@ -7,7 +7,7 @@ import pandas as pd
 app = Flask(__name__)
 
 
-@app.route('/new_veicle', methods=['POST'])
+@app.route('/new_veicle', methods=['POST', 'GET'])
 def new_prediction():
 
     data = request.get_json()
@@ -32,14 +32,17 @@ def new_prediction():
 
     return jsonify({"prediction": float(prediction[0])})
 
-@app.route('/mse')
+@app.route('/error')
 def mse():
     metodo = request.args.get("metodo")
     df = PuliziaDataset()
     X, y = df.trova_outliers()
     model = Regressione(X, y, metodo=request.args.get("metodo"))
-    mse = model.train()
-    return jsonify({"mse": mse})
+    mse, mae, rmse, r2 = model.train()
+    return jsonify({"mse": mse,
+                    "mae": mae,
+                    "rmse": rmse,
+                    "r2": r2})
 
 
 @app.route('/na')
