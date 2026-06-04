@@ -114,6 +114,33 @@ class PuliziaDataset:
     def matrice_correlazione(self, metodo="pearson"):
         df = self.replace_strange_missing_values()
         return df.select_dtypes(include="number").corr(method=metodo)
+    
+    def grafici_correlazione(self, metodo="pearson"):
+        df = self.replace_strange_missing_values()
+
+        corr = df.select_dtypes(include="number").corr(method=metodo)
+
+        fig, ax = plt.subplots(figsize=(10, 8))
+
+        sns.heatmap(
+            corr,
+            annot=True,  # mostra i valori
+            fmt=".2f",  # 2 decimali
+            cmap="coolwarm",
+            vmin=-1,
+            vmax=1,
+            ax=ax
+        )
+
+        ax.set_title(f"Matrice di Correlazione ({metodo.title()})")
+
+        buf = BytesIO()
+        fig.savefig(buf, format="png", bbox_inches="tight")
+        buf.seek(0)
+
+        plt.close(fig)
+
+        return buf
 
     def jarque_bera_test(self):
         df = self.replace_strange_missing_values()
